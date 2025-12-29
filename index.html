@@ -1,0 +1,273 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Homework Generator</title>
+    <style>
+        :root { --wa-green: #25D366; --wa-dark: #075E54; }
+        
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            background: #e5ddd5; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .container { 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            box-sizing: border-box;
+            min-height: 100vh;
+        }
+
+        .card { 
+            background: white; 
+            width: 100%; 
+            max-width: 600px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+            margin-top: 20px;
+        }
+
+        .header { 
+            background: var(--wa-dark); 
+            color: white; 
+            padding: 16px; 
+            text-align: center; 
+        }
+
+        .header img {
+            width: 120px;
+        
+            
+            
+        }
+
+        .content { padding: 10px; }
+
+        textarea { 
+            width: 100%; 
+            height: 300px; 
+            border: 2px solid #eee; 
+            border-radius: 8px; 
+            padding: 15px; 
+            font-size: 18px; 
+            box-sizing: border-box; 
+            resize: vertical; 
+            outline: none; 
+            font-weight: 500;
+            line-height: 1.5;
+            background-color: #f9f9f9;
+        }
+
+        textarea:focus {
+            border-color: var(--wa-dark);
+            background-color: #ffffff;
+        }
+
+        .btn-gen { 
+            width: 100%; 
+            background: var(--wa-dark); 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            border-radius: 8px; 
+            font-weight: bold;
+            cursor: pointer; 
+            margin-top: 15px;
+            font-size: 18px;
+            transition: background 0.3s;
+        }
+
+        .btn-share { 
+            position: fixed; 
+            top: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: var(--wa-green); 
+            color: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            display: none; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        #preview { 
+            width: 100%; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            display: none; 
+            border: 1px solid #ddd;
+        }
+
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <div class="header">
+            
+            <img src="https://i.ibb.co/k61Tv6t5/images.png" alt="Logo" onerror="this.style.display='none'">
+            <h2 style="margin:0">Homework Generator</h2>
+            <p style="margin: 5px 0 0 0; opacity: 0.8; font-size: 14px;">Create clear assignment images</p>
+        </div>
+        <div class="content">
+            <textarea id="hwInput" placeholder="Type your tasks here...&#10;• Math Page 20&#10;• Read Chapter 3"></textarea>
+            <button class="btn-gen" onclick="generateImage()">GENERATE PNG IMAGE</button>
+            <img id="preview">
+        </div>
+    </div>
+</div>
+
+<button id="shareBtn" class="btn-share" onclick="shareImage()">
+    <span style="font-size: 24px;">➔</span>
+    <span style="font-size: 10px; font-weight: bold;">SHARE</span>
+</button>
+
+<canvas id="hwCanvas"></canvas>
+
+<script>
+    let sharedBlob = null;
+
+    function getWrappedLines(ctx, text, maxWidth) {
+        const words = text.split(" ");
+        const lines = [];
+        let currentLine = words[0];
+
+        for (let i = 1; i < words.length; i++) {
+            let word = words[i];
+            let width = ctx.measureText(currentLine + " " + word).width;
+            if (width < maxWidth) {
+                currentLine += " " + word;
+            } else {
+                lines.push(currentLine);
+                currentLine = word;
+            }
+        }
+        lines.push(currentLine);
+        return lines;
+    }
+
+    async function generateImage() {
+        const canvas = document.getElementById('hwCanvas');
+        const ctx = canvas.getContext('2d');
+        const rawText = document.getElementById('hwInput').value;
+        if(!rawText.trim()) { alert("Please enter some text"); return; }
+
+        // --- Logo Handling ---
+        // --- Logo Handling ---
+        const logo = new Image();
+        // Allow cross-origin loading so the canvas can export the image
+        logo.crossOrigin = "anonymous"; 
+        logo.src = "https://i.ibb.co/k61Tv6t5/images.png"; 
+        
+        // Wait for image to load before drawing
+        await new Promise((resolve) => {
+            logo.onload = () => resolve();
+            logo.onerror = () => {
+                console.error("Logo failed to load from URL.");
+                resolve();
+            };
+        });
+
+        const inputLines = rawText.split('\n').filter(l => l.trim() !== "");
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateStr = new Date().toLocaleDateString(undefined, options);
+
+        const maxWidth = 700; 
+        ctx.font = "bold 30px Arial";
+        
+        let allWrappedLines = [];
+        inputLines.forEach(l => {
+            const wrapped = getWrappedLines(ctx, l, maxWidth);
+            allWrappedLines = allWrappedLines.concat(wrapped);
+        });
+
+        // Header Settings
+        const headerHeight = 200; 
+        const lineHeight = 50; 
+        const padding = 60;
+        
+        canvas.width = 800;
+        canvas.height = headerHeight + (allWrappedLines.length * lineHeight) + padding;
+
+        // Draw Background
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw Header Box
+        ctx.fillStyle = "#075E54";
+        ctx.fillRect(0, 0, canvas.width, headerHeight);
+        
+        // Draw Logo inside Header (Center top)
+        if (logo.complete && logo.naturalWidth !== 0) {
+            const logoW = 106;
+            
+            const logoH = (logo.naturalHeight / logo.naturalWidth) * logoW;
+            ctx.drawImage(logo, (canvas.width / 2) - (logoW / 2), 0, logoW, logoH);
+        }
+
+        // Draw Header Text
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.font = "bold 42px Arial";
+        ctx.fillText("Holiday Homework", canvas.width / 2, 140);
+        
+        ctx.font = "22px Arial";
+        ctx.fillText(dateStr, canvas.width / 2, 175);
+
+        // Draw Homework Text
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#000000"; 
+        ctx.font = "bold 30px Arial"; 
+        let y = headerHeight + 60;
+        
+        allWrappedLines.forEach(line => {
+            ctx.fillText(line, 50, y);
+            y += lineHeight;
+        });
+
+        // Export to Blob
+        canvas.toBlob((blob) => {
+            sharedBlob = blob;
+            const preview = document.getElementById('preview');
+            preview.src = URL.createObjectURL(blob);
+            preview.style.display = "block";
+            document.getElementById('shareBtn').style.display = "flex";
+            preview.scrollIntoView({ behavior: 'smooth' });
+        }, 'image/png');
+    }
+
+    async function shareImage() {
+        if (!sharedBlob) return;
+        const file = new File([sharedBlob], 'homework.png', { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try { 
+                await navigator.share({ 
+                    files: [file], 
+                    title: 'Today\'s Homework',
+                    text: 'Check out today\'s assignments.'
+                }); 
+            } catch (err) { console.log("Share cancelled"); }
+        } else {
+            alert("Your browser doesn't support direct sharing. Please long-press the image to save.");
+        }
+    }
+</script>
+
+</body>
+</html>
