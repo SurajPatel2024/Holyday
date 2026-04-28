@@ -108,6 +108,31 @@
     color: var(--dark);
 }
 
+
+
+    .visit-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #f0f2f5;
+        color: var(--dark);
+        text-decoration: none;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        border: 1px solid #ddd;
+        margin-top: 5px;
+        transition: 0.3s;
+    }
+    .visit-btn:hover {
+        background: var(--green);
+        color: white;
+    }
+    .visit-btn svg {
+        width: 14px;
+        height: 14px;
+    }
     </style>
 </head>
 <body>
@@ -118,6 +143,16 @@
     <div class="header-ui">
         <img src="https://i.ibb.co/SDLXGQ1b/images.png" class="logo-ui">
         <h4 style="margin: 5px 0; color: var(--dark);">Homework Portal</h4>
+   
+   <a href="https://surajpatel2024.github.io/K.S.P-/" target="_blank" class="visit-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            Visit Official Site
+        </a>
+   
     </div>
     
     <div id="input-container"></div>
